@@ -1,0 +1,1701 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Turboloading dark matter searches with differentiable programming</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+    <link rel="stylesheet" href="./assets/katex.min.css">
+    <link rel="stylesheet" href="./assets/style.css">
+    <link rel="stylesheet" href="./assets/grid.css">
+    <link rel="stylesheet" href="./assets/animate.min.css">
+    <style type="text/css">
+      /* Slideshow styles */
+    </style>
+  </head>
+  <body>
+
+<!-- *********************** Start of slide content ********************** -->
+<textarea id="source">
+
+class: title-slide
+
+# Turboloading dark matter searches with differentiable programming
+
+.smaller.center[Christoph Weniger (GRAPPA/IoP/UvA)]
+
+.center[with Adam Coogan and Kosio Karchev (University of Amsterdam)]
+
+.center[arxiv:2010.07032]
+
+
+.center[
+.width-25[![](figures/gallery_obs.png)]
+.width-25[![](figures/gallery_fit.png)]
+.width-25[![](figures/gallery_true_src.png)]
+]
+
+.right[9 December 2020
+
+GSSI Colloquium]
+
+<br>
+<br>
+
+
+
+<!-- Physics motivation strong lensing -->
+
+---
+
+class: black-slide
+background-image: url(figures/pietro-jeng-n6B49lTx7NM-unsplash.jpg)
+background-size: cover
+
+# AI and Dark Universe at GRAPPA
+
+
+.block.grid[
+.kol-1-2[
+.center.bold[Data]
+- Gravitational waves
+- Stellar streams
+- Neutron star radio emission
+- **Strong lensing images**
+- Gamma-ray data (Fermi, CTA)
+- Cosmology
+]
+.kol-1-2[
+.center.bold[Methods]
+- **Variational inference**
+- Differentiable programming
+- Probabilistic programming
+- GPU acceleration
+- **Simulation-based inference**
+]
+]
+
+
+.block[.center.bold[People]
+.center[5 postdocs (+2 to hire), 3 PhD students (+2 to hire), 1 MSc student]
+]
+
+.center[
+.width-20[![](figures/erc_logo_0.jpg)]
+.width-40[![](figures/escience_center.jpg)]
+.width-30[![](figures/ai4science.png)]
+]
+
+
+.footnote[Photo by Pietro Jeng on Unsplash]
+
+
+---
+
+class: black-slide, center
+
+# The energy budget of the Universe
+
+.center[.width-70[![](figures/DM_pie_chart.jpg)]]
+
+## What is Dark Matter made of?
+
+
+---
+
+exclude: true
+
+class: center
+
+# Dark matter candidates
+
+.center[.width-65[![](figures/DM_candidates.jpg)]]
+
+.footnote[Image credit: Bertone/Tait 2018]
+
+---
+
+class: black-slide, center, bottom
+background-image: url(figures/illustris_box_z0124_4panel.png)
+background-size: contain
+
+.center.block[
+
+## Evolution of structure in the Universe (bottom to top)
+
+Dark matter overdensities collapse into increasily large halos.
+
+Large enough halos are sites of star and galaxy formation.
+
+Details depend on the particle nature of dark matter!
+
+.smaller-x[Source: The Illustris project, [illustris-project.org](https://illustris-project.org)]
+
+]
+
+
+---
+
+class: center, black-slide
+
+# Dark matter mass vs substructure
+
+.center[.width-65[![](figures/CHDM.gif)]]
+
+Hot, warm and cold dark matter (from left to right)
+
+at early times and late times (top to bottom)
+
+.footnote[Image credit: ITC @ University of Zurich]
+
+
+---
+
+# Dark matter mass vs substructure
+
+Amount of substructure depends on the dark matter particle mass.
+
+.center[.width-65[![](figures/wdm_subhalo_massfunction.png)]]
+
+.red.center[Absence of substructure implies that the Cold Dark Matter paradigm is wrong.]
+
+
+.footnote[Image credit: Chianese, Marco. 2019. “Differentiable Probabilistic Programming for Strong Gravitational Lensing.” arXiv [astro-ph.CO]. arXiv. https://doi.org/10.22323/1.358.0515]
+
+
+
+---
+
+class: black-slide, center
+background-image: url(figures/A_Horseshoe_Einstein_Ring_from_Hubble.jpeg)
+background-size: cover
+
+# Strong gravitational lensing
+
+## A "horseshoe Einstein Ring from Hubble"
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+The gravity of a luminous red galaxy has gravitationally distorted the light from a much more distant blue galaxy.
+
+.footnote[Obsevation with Hubble Space Telescope's Wide Field Camera 3.]
+
+
+
+---
+
+class: black-slide
+
+# Strong lensing
+
+
+.grid[
+.kol-2-3[
+.center[.width-100[![](figures/lensing_overview.png)]]
+]
+.kol-1-4[
+Lensed quasar
+.width-100[![](figures/lensing_multi_quasars.png)]
+
+Lensed galaxy
+.width-100[![](figures/lensing_galaxy.png)]
+]
+]
+
+---
+exclude: true
+
+# Weak and strong lensing
+
+.width-100[![](figures/Sid_lensing_1.png)]
+
+.footnote[Slide credit: Siddharth Mishra-Sharma (NYU)]
+
+---
+
+exclude: true
+
+# The effect of dark matter substructure
+
+.width-100[![](figures/Sid_lensing_2.png)]
+
+.footnote[Slide credit: Siddharth Mishra-Sharma (NYU)]
+
+---
+
+class: middle
+
+# The goal
+
+.center.large[Constrain the mass of dark matter particles by constraining the amount of dark matter substructure in the images.]
+
+
+---
+
+# First approaches using neural networks
+
+Example: Brehmer+ 2019.  The authors train classification networks to estimate posteriors for subhalo parameters.
+
+.center.width-80[![](figures/Brehmer_posteriors.png)]
+
+Very promising in context of this toy scenario
+
+.red.center[How can this method be successfully applied to real complex images?]
+
+.footnote[From Brehmer, Johann, Siddharth Mishra-Sharma, Joeri Hermans, Gilles Louppe, and Kyle Cranmer. 2019. “Mining for Dark Matter Substructure: Inferring Subhalo Population Properties from Strong Lenses with Machine Learning.” arXiv [astro-ph.CO]. arXiv. http://arxiv.org/abs/1909.02005]
+
+---
+
+
+# Problem: DM signal << Image variance
+
+.grid[
+.kol-1-2[
+.bold.center[DM substructure effects are .underline[very small]]
+
+.center[.width-90[![](figures/ppd_samples-left.gif)]]
+
+.center[Effect of subhalos at different positions]
+]
+.kol-1-2[
+.bold.center[Variance between images is .underline[very large]]
+
+.center.width-100[![](figures/213372main_67_hubble_lg.jpg)]
+
+.center[Exemplary strong lensing images (HST)]
+]
+]
+
+.footnote[Coogan+ 2020, in preparation]
+
+
+---
+
+exclude: true
+
+class: black-slide
+
+# Variance between images is .underline[very large]
+
+.center.width-80[![](figures/213372main_67_hubble_lg.jpg)]
+
+---
+
+background-image: url(figures/A_Horseshoe_Einstein_Ring_from_Hubble.jpeg)
+background-size: contain
+
+class: black-slide, center, middle
+
+.block[
+# How can modern machine learning techniques help to perform .underline[precision] analyses of strong lensing images?
+]
+
+---
+
+
+class: center, middle
+
+# Bayesian inference
+
+
+---
+
+# Observed data $x$ vs latent space $z$
+
+
+.grid[
+.kol-1-3[.bold[Gravitational lensing] .width-100[![](figures/A_Horseshoe_Einstein_Ring_from_Hubble.jpeg)]
+- $x$: image
+- $z$: DM distribution, source light distribution, ...
+]
+.kol-1-3[.bold[Gravitational waves] .width-100[![](https://cdn.mos.cms.futurecdn.net/fNo6JvmhpmL3qL3nnMSVzK-970-80.jpeg)]
+- $x$: waveform
+- $z$: BH masses, BH spins, distance, sky position, ...
+]
+.kol-1-3[.bold[Particle colliders] .width-100[![](https://assets.newatlas.com/dims4/default/1299ab9/2147483647/strip/true/crop/800x533+0+1/resize/1200x800!/format/webp/quality/90/?url=http%3A%2F%2Fnewatlas-brightspot.s3.amazonaws.com%2Farchive%2Fquantizer-1.jpeg)]
+- $x$: measured four-vectors
+- $z$: MSSM parameters, all details of particular particle collision 
+]
+]
+
+.center[$x$ observed; $z$ latent (anything random/uncertain except detector noise)]
+
+
+---
+
+exclude: true
+
+class: black-slide
+
+# Forward model vs generative model
+
+
+.large.block[
+
+- $P(x|z)$: **Forward model** or **Likelihood**
+
+  (Physics + detector simulators)
+
+- Prior knowledge provides parameter **priors** $P(z)$
+- This defines **generative model** $P(x, z) \equiv P(x|z)P(z)$
+]
+
+
+---
+
+# Solving the inverse problem
+
+.center.red[Bayes' theorem provides a rule for updating believes in light of new data]
+
+.grid[
+.kol-1-2[
+## Likelihood/simulator $P(x|z)$
+How probable is data $x$ assuming that parameters $z$ are true?
+]
+.kol-1-2[
+## Prior $P(z)$
+How probable are the parameters $z$?
+]
+]
+
+$$
+P(z|x) = \frac{P(x|z) P(z)}{P(x)}
+$$
+
+
+<br>
+.grid[
+.kol-1-2[
+## Posterior $P(z|x)$
+How probably are our parameters $z$ given the observed data $x$?
+]
+.kol-1-2[
+## Marginal likelihood $P(x)$
+How probable is the new data $x$ under all possible hypothesis $z$?
+
+$$
+P(x) \equiv \int dz\, P(x|z) P(z)
+$$
+]
+]
+
+---
+
+exclude: true
+
+# The inverse problem
+
+## Bayes' theorem
+
+$$
+P(z|x) = \frac{P(x|z) P(z)}{P(x)}
+$$
+
+.grid[
+.kol-1-5.center[
+Likelihood 
+
+$P(x|z)$
+]
+.kol-1-5.center[
+Prior 
+
+$P(z)$
+]
+.kol-1-5.centerj[
+Posterior
+
+$P(z|x)$
+]
+.kol-2-5.center[
+Evidence
+
+$P(x) \equiv \int dz\, P(x|z) P(z)$
+]
+]
+
+---
+
+exclude: true
+
+This gives the **joined posterior** for the full latent space $z\in \mathbb{R}^n$.  Almost always, we want however the **marginal posterior**, say, for $\theta\in \mathbb{R}$, where $z\equiv(\theta, \eta)$ and $\eta \in \mathbb{R}^{n-1}$ are nuisance parameters.
+
+$$
+P(\theta|x) = \int d\eta\, P(\theta, \eta|x) 
+$$
+
+Alas, this integral is usually **intractable**.
+
+---
+
+exclude: true
+
+# Markov Chain Monte Carlo
+
+.center.red[The method-of-choice for inverse problem solving MCMC]
+
+.center.width-55[![](figures/3dRosenbrock.png)]
+
+.center[Example: Markov Chain Monte Carlo exploring the 3d Rosenbrock function]
+
+.center[We are usually interested in 1-dim or 2-dim projections of the high-dim chain (the parameters of interest)]
+
+[Chi-Feng animations](https://chi-feng.github.io/mcmc-demo/app.html?algorithm=RandomWalkMH&target=banana)
+
+.footnote[Image credit: https://en.wikipedia.org/wiki/Metropolis%E2%80%93Hastings_algorithm#/media/File:3dRosenbrock.png]
+
+---
+
+# Marginal posteriors
+
+- Strong lensing images have 10000s of parameters
+
+$$
+\vec z = (\vec z\_\text{main lens}, \vec z\_\text{source}, \vec z\_\text{substructure})
+$$
+
+- One is seldomly interested in the full $P(z|x)$
+- Instead, we are usually interested in marginalized version, e.g.
+  $$
+  P(m\_\text{dm}|x) = \int dz\_l\, dz\_s\, dz\_h\, p(x|z\_l, z\_s, z\_h) p(z\_l) p(z\_s) p(z\_h|m\_\text{dm}) p(m\_\text{dm})
+  $$
+- Problem, what to do with this massive integral?
+
+.grid[
+.kol-1-2[
+.center.width-100[![](figures/curse_of_dim.png)]
+
+.center[The "curse of dimensionality"]
+]
+.kol-1-2[
+.center.width-40[![](figures/Bimodal-bivariate-small.png)]
+
+.center[Multi-modal posteriors]
+]
+]
+
+.footnote[Image credit: Betancourt 2017, Wikipedia]
+
+---
+
+exclude: true
+
+# Markov Chain Monte Carlo
+
+.grid[
+.kol-1-2[
+## Methods
+- Metropolis Hastings
+- Gibbs sampling
+- Nested sampling
+- Hamiltonian Monte Carlo
+- others
+]
+.kol-1-2[
+## Visualization
+Typical "corner plot" that shows 1-dim and 2-dim posteriors
+.right[.width-90[![](https://www.researchgate.net/profile/Carmelita_Carbone/publication/321719035/figure/fig1/AS:614186346352656@1523444844641/Joint-posterior-distribution-obtained-using-Planck-temperature-and-polarization-data-and.png)]]
+]
+]
+
+---
+
+exclude: true
+
+# Challenges for MCMC
+
+## 1. MCMC does not scale well to extremely large number of parameters
+
+.center.width-60[![](figures/curse_of_dim.png)]
+
+.center[In high dimensions, $z\in \mathbb{R}^n$ with $n \gg 1$, the volume in the center partition becomes negligible compared to the neighboring volume.]
+
+## 2. MCMC does struggle with multi-model distributions
+
+.center.width-30[![](figures/Bimodal-bivariate-small.png)]
+
+.footnote[Image credit: Betancourt 2017, Wikipedia]
+
+---
+
+# Classical inference methods
+
+.bold.center[The two faces of $P(x|z)$]
+
+.grid[
+.kol-1-2[
+.red.bold[Probability density]
+
+$P(x|z)$ gives the probability of observing $x$ given parameters $z$.
+
+$$
+P_{\mathcal{N}}(x=0.3|\mu = 0., \sigma = 1) \simeq 0.38
+$$
+
+.bold[Typical algorithms]
+  - chi2 fits
+  - Markov Chain Monte Carlos (Metropolis Hastings, Hamiltonian MC, etc)
+
+]
+.kol-1-2[
+.red.bold[Sampler]
+
+Sampling synthetic observations $x\sim P(x|z)$ given parameters $z$.
+
+$$
+-0.24, 0.91 \sim P\_{\mathcal{N}}(x|\mu = 0., \sigma = 1)
+$$
+
+.bold[Typical algorithms]
+
+  - Approximate Bayesian computation
+
+]
+]
+
+.grid[
+.kol-1-2[
+.bold[Properties]
+  - Asymptotically optimal
+  - Marginalization = Integration : costly
+]
+.kol-1-2[
+.bold[Properties]
+  - Requires choice of summary statistics
+  - Marginalization = Ignoring : cheap
+]
+]
+
+---
+
+class: black-slide
+
+background-image: url(figures/pietro-jeng-n6B49lTx7NM-unsplash.jpg)
+background-size: cover
+
+# Modern machine learning power-ups
+
+
+.red.block.center.large[
+| Category | Traditional method | Modern ML |
+|------------------|------|------|
+| Likelihood-based | Markov chain monte carlo, Profile likelihood methods, ... | Variational Inference |
+| Likelihood-free | Approximate Bayesian Computation | Simulator based neural inference |
+]
+
+<br>
+<br>
+<br>
+
+.block.center[Under the hood, modern methods are based on the ability of solving massive high-dimensional optimization problems]
+
+.footnote[Photo by Pietro Jeng on Unsplash]
+
+---
+
+class: center, middle
+
+# Variational inference
+
+## Reconstruction of the main lens and source parameters of a gravitational lensing system
+
+---
+
+exclude: true
+
+# Machine learning super powers
+
+## Likelihood-based inference --> Variational inference 
+
+Instead of sampling from the high-dimensional joint posterior, we fit it using
+auto-differentiation and gradient descent.
+
+
+## Sampling based inference, ABC --> Neural simulator based inference
+
+Instead of hand-crafting test statistics and thresholds, we automatically optimize them by using auto-differentiation and gradient descent.
+
+---
+
+# Variational Bayesian (VI) methods
+
+<br>
+
+.center[Let's find some fitting function $Q(z)$, aka **variational posterior**, such that $Q(z) \approx P(z|x)$]
+
+.center[![](https://4.bp.blogspot.com/-OCU72-Cp5lg/V6fxbBAV4oI/AAAAAAAAFE4/BMcR5OYwZqwARnqFnm3I9I_S46O-IH-uQCLcB/s1600/Untitled%2Bpresentation%2B%25282%2529.png)]
+
+.footnote[See Carleo, Giuseppe et al., 2019. “Machine Learning and the Physical Sciences.” http://arxiv.org/abs/1903.10563; Excellent overview: Zhang, Cheng et al. 2017. “Advances in Variational Inference.” http://arxiv.org/abs/1711.05597; also Cranmer, Kyle, Johann Brehmer, and Gilles Louppe. 2019. “The Frontier of Simulation-Based Inference.” http://arxiv.org/abs/1911.01429; Cranmer, Kyle, Juan Pavez, and Gilles Louppe. 2015. “Approximating Likelihood Ratios with Calibrated Discriminative Classifiers.” http://arxiv.org/abs/1506.02169]
+
+.center[How to measure differences between probability distribution functions?]
+
+---
+
+# The distance between distributions
+
+## Kullback-Leibler divergence
+
+
+
+$$
+D_{\rm KL}(P||Q)  = \int p(x) \ln \left(\frac{p(x)}{q(x)}\right)dx
+$$
+
+.center[Measures difference between probability density distributions.]
+
+.center.width-60[![](figures/KL_example.png)]
+
+
+## Properties
+- $D_{\rm KL}(P||Q) = 0$ $\Leftrightarrow$ $p(x) = q(x)$
+- $D\_{\rm KL}(P||Q) \geq 0$
+
+---
+
+exclude: true
+
+# Failure modes of the KL divergence
+
+.center[What happens when approximating, say, a bi-modal function with a single mode?]
+
+.grid[
+.kol-2-5[
+## Reverse KL divergence
+
+- "mode seeking"
+- good when aim is **good fit** to data
+
+## Forward KL divergence
+
+- "mass covering"
+- good when aim is **conservative parameter constraints**
+]
+.kol-3-5[
+.width-100[![](http://timvieira.github.io/blog/images/KL-inclusive-exclusive.png)]
+]
+]
+
+.footnote[Image credit: John Winn.
+
+Nomenclature adopted from Ambrogioni, Luca et al. 2018. “Forward Amortized Inference for Likelihood-Free Variational Marginalization.” arXiv [stat.ML]. arXiv. http://arxiv.org/abs/1805.11542]
+
+---
+
+# Variational inference in practice
+
+## Evidence lower bound
+
+.block-cyan[
+Minimizing KL divergence = maximizing **Evidence Lower Bound (ELBO)**
+
+$$
+\text{ELBO} \equiv p(x\_0) - D\_{KL}(q\_\phi||p)
+$$
+
+ELBO maximization w.r.t. variational parameters $\phi$ yields variational posterior
+$$q\_\phi(z|x_0)\approx p(z|x_0)$$
+]
+
+The ELBO can be written in a tractable form as
+
+$$
+\text{ELBO} = \underbrace{\mathbb{E}\_{z \sim q\_\phi(z|x\_0)} \left[\ln p(x\_0|z)p(z)\right]}\_{\rm "Negative\; energy"} - \underbrace{\mathbb{E}\_{z \sim q\_\phi(z|x\_0)} \left[\ln q\_\phi(z|x\_0)\right]}\_{\rm Entropy}
+$$
+
+- First term (negative energy): Rewards a good fit to data
+- Second term (entropy): Penalizes overfitting / narrow variational posteriors
+
+
+
+
+.footnote[See e.g. Hoffman et al. 2016, “ELBO Surgery: Yet Another Way to Carve up the Variational Evidence Lower Bound.” http://approximateinference.org/accepted/HoffmanJohnson2016.pdf]
+
+---
+
+exclude: true
+
+# Differentiable programming
+
+
+## Variational posterior $q_\phi(z|x_0)$ depends on large number of fitting parameters $\phi$
+- If $q$ is MVN, we have $n^2+n$ fitting parameters for $n$-dim latent space $z$
+- This can be mitigated by making simplifying assumptions, e.g. neglecting parameter correlations
+.center.width-35[![](figures/renyi.png)]
+
+---
+
+# A balance of three forces
+
+.center.width-95[![](figures/ELBO_LucaA.jpg)]
+
+.footnote[Image credit: Stolen from Luca Ambrogioni (Nijmegen) on twitter]
+
+---
+
+# .underline[Differentiable programming]
+
+.center[
+## The crux: Efficient ELBO maximization requires gradients of the physics simulator
+
+We need to be able to quickly calculate derivatives of the forward model, $\nabla_z p(x|z)$
+]
+
+.center[
+## This can be efficiently achieved using auto-grad programming frameworks (pytorch, JAX) from ML
+]
+
+.center.width-80[![](figures/AutomaticDifferentiationNutshell.png)]
+
+
+.footnote[Image credit: Wikipedia]
+
+---
+
+exclude: true
+
+# Example: Water height simulator
+
+.center.bold[Task: Solve the initial value problem for water flowing into the Taichi symbol]
+
+.center.width-40[![](figures/DiffTaichi_watersim.gif)]
+
+.center[Differentiable water height simulator with DiffTaichi]
+
+.footnote[See: https://syncedreview.com/2020/01/13/introducing-difftaichi-a-differentiable-programming-language-tailored-for-physical-simulation/]
+
+
+---
+
+exclude: true
+
+# Approximations
+
+.center[We can neglect parameter correlations in order to simplify the inference problem]
+
+.center.width-35[![](figures/renyi.png)]
+
+
+Posterior factorizes
+$$
+q(z|x\_0) = \prod\_{i=1}^N q\_i(z\_i|x\_0)
+$$
+
+.footnote[Image credit: Li and Turner 2016]
+
+---
+
+# Back to strong lensing
+
+## The goal using VI: reconstruction of the source image and the main lens properties
+
+.center[
+.width-30[![](figures/NeurIPS_Fig1a.png)]
+.width-30[![](figures/NeurIPS_Fig1c.png)]
+.width-30[![](figures/NeurIPS_Fig1d.png)]
+]
+
+.center[How to get from the image (left) to the reconstructed source (right)?]
+
+---
+
+class: middle
+
+## In order to enable the use of VI, we implemented our pipeline in `pytorch`
+
+- GPU-based simulation of high-resolution images in a split second
+- Likelihood gradients w.r.t. hundred thousand of parameters with O(1) overhead
+
+
+.footnote[Image credit: Preliminary, Karchev+ 2020 in preparation]
+
+
+---
+
+# The strong lensing model
+
+.center[
+.width-80[![](figures/lensing_geometry.png)]
+]
+
+- Pixelated source galaxy image $\rightarrow$ 10000 parameters
+- Analytic mass distribution in the lens $\rightarrow$ 10 parameters
+
+.center.bold[We assume that lens and source posteriors are *Gaussian and neglect parameter correlations*]
+
+
+.footnote[Image credit: Preliminary, Karchev+ 2020 in preparation]
+
+---
+
+# Modeling the source as Gaussian process
+
+.center[.width-65[![](https://blog.dominodatalab.com/wp-content/uploads/2017/03/output_75_0-1.png)]]
+
+- Hyper-parameter optimization through maximization of marginal likelihood
+- Kernel is simple in source plane
+- But: Lensing causes complicated kernal structure in image plane
+
+$\Rightarrow$ **existing approaches/libraries were insufficient for our use-case**
+
+.footnote[Image source: https://blog.dominodatalab.com/wp-content/uploads/2017/03/output_75_0-1.png]
+
+---
+
+exclude: true
+
+# Factorized Gaussian process
+
+## Covariance of image pixels from indicator functions and GP kernel
+$$
+K_{ij}  = k(\mathbf{\vec{p}}_i - \mathbf{\vec{p}}_j)
+= \int \text{d}\vec{x}_1 \text{d}\vec{x}_2
+\ f_i(\mathbf{\vec{p}}_i - \vec{x}_1)
+\ k_0(\vec{x}_1 - \vec{x}_2)
+\ f_j(\mathbf{\vec{p}}_j - \vec{x}_2)
+$$
+
+.grid[
+.kol-2-5[
+Approximate factorization
+$$
+K \approx T T^T
+$$
+allows to write
+$$
+\mu\_i = \sum\_j T_{ij} y_j
+$$
+$$
+y_j \sim \mathcal{N}(0, 1)
+$$
+]
+.kol-3-5[
+.width-80[![](figures/GP_source.png)]
+]
+]
+
+.center[
+This implies that $\text{Cov}(\mu\_i, \mu\_j) = K\_{ij}$ in the image plane.
+]
+
+---
+
+exclude: true
+
+# Factorization of covariance matrix
+
+.center[![](figures/gp_windows.png)]
+
+The intergral
+$$
+K_{ij}  = k(\mathbf{\vec{p}}_i - \mathbf{\vec{p}}_j)
+= \int \text{d}\vec{x}_1 \text{d}\vec{x}_2
+\ f_i(\mathbf{\vec{p}}_i - \vec{x}_1)
+\ k_0(\vec{x}_1 - \vec{x}_2)
+\ f_j(\mathbf{\vec{p}}_j - \vec{x}_2)
+$$
+becomes easy to evaluate if we approximate pixel indicator functions with multivariate Gaussians.  
+
+- .red[Integral can be expressed in terms of multivariate Gaussian].
+- By replacing $k_0$ with $\sqrt{k_0}\sqrt{k_0}$, we can factorize $K$.
+
+
+.footnote[Image credit: Preliminary, Karchev+ 2020 in preparation]
+
+---
+
+exclude: true
+
+# Exact vs approx. correlation coefficients
+
+.center.width-60[![](figures/windowing_c_idist.png)]
+
+.footnote[Image credit: Preliminary, Karchev+ 2020 in preparation]
+
+---
+
+exclude: true
+
+# Reverse KL divergence
+
+Goal: Find $q_\phi(z|x_0)$ for some observation $x_0$ by minimize the KL divergence at $x=x_0$
+
+One can show that minimizing KL divergence is equivalent to maximizing **Evidence Lower Bound (ELBO)**
+
+$$
+\text{ELBO} \equiv \underbrace{\mathbb{E}\_{z \sim q\_\phi(z|x\_0)} \left[\ln p\_\theta(x\_0,z)\right]}\_{\rm "Negative\; energy"} - \underbrace{\mathbb{E}\_{z \sim q\_\phi(z|x\_0)} \left[\ln q\_\phi(z|x\_0)\right]}\_{\rm Entropy}
+$$
+
+ELBO maximization w.r.t. model parameters $\theta$ and variational parameters $\phi$ leads to
+- Variational posterior $q\_\phi(z|x_0)$ for data $x_0$
+- Large model evidence $p\_\theta(x_0)$
+
+.footnote[See e.g. Hoffman et al. 2016, “ELBO Surgery: Yet Another Way to Carve up the Variational Evidence Lower Bound.” http://approximateinference.org/accepted/HoffmanJohnson2016.pdf]
+
+---
+
+exclude: true
+
+# Exact vs approx. GP
+
+.grid[
+.kol-1-2[
+## Properties of our approximate GP
+- No log-determinant evaluation (happens on-the-fly as part of ELBO maximization)
+- Can model complex kernels
+- Reasonable agreement with exact Gaussian process regression
+]
+.kol-1-2[
+.center.width-100[![](figures/gp-nonoise.png)]
+]
+]
+
+.footnote[Image credit: Preliminary, Karchev+ 2020 in preparation]
+
+---
+
+# Result: Image reconstruction with VI
+
+.center.width-100[![](figures/lens_toy_img-rec.png)]
+
+- We quickly can find lensing parameters and source parameters that reproduce the image
+- Hyper-parameter fits optimize variations in the source
+
+.footnote[Image credit: Preliminary, Karchev+ 2020 in preparation]
+
+---
+
+# Result: Source reconstruction with VI
+
+<br>
+<br>
+
+
+.center[
+.width-35[![](figures/lens_toy_source_true.png)] .width-55[![](figures/lens_toy_gp_fit_err.png)]
+]
+
+.center[We obtain the reconstructed source flux **and its uncertainties**]
+
+.footnote[Image credit: Preliminary, Karchev+ 2020 in preparation]
+
+---
+
+exclude: true
+
+# Source layers differ in smoothness
+
+## Mean values
+.center.width-80[![](figures/lens_toy_gp_layers_mean.png)]
+
+## Uncertainties
+.center.width-80[![](figures/lens_toy_gp_layers_err.png)]
+
+.footnote[Image credit: Preliminary, Karchev+ 2020 in preparation]
+
+---
+
+# More examples with complex galaxies
+
+.center[.width-100[![](figures/gallery_sigma_stat=1_ngp=4.png)]]
+
+.center.bold[Works great!]
+
+.footnote[Preliminary, Coogan+ 2020]
+
+---
+
+class: middle, black-slide
+background-image: url(figures/zoltan-alps.jpg)
+background-size: cover
+
+.block[
+
+## Problem: Subhalos configurations are permutation symmetric (labeling invariant)
+
+- 40 subhalos can be relabled in
+  $$
+  40! = 815915283247897734345611269596115894272000000000
+  $$
+  different ways.
+- This leads to $\sim10^{48}$ modes in the joint posterior, which is challenging to handle with likelihood-based techniques that explore the joint posterior.
+- In reality, not even the number of subhalos is known, and has to be marginalized in the fit as well.
+
+<br>
+
+.red.center[
+Although VI works great for the source and the main lens, <br>
+it is very hard to use for large numbers of dark matter subhalos.]
+]
+
+.footnote[However, proress is possible with trans-dimensional sampling, see .e.g. Brewer+ 1508.00662 and Daylan+ 1706.06111, using trans-dimensional sampling.  Photo by Zoltan Tasi on Unsplash]
+
+---
+
+exclude: true
+
+# Full correlated posteriors
+
+.center[.width-60[![](figures/sersic_post_full.png)]]
+
+.footnote[Image credit: Preliminary, Karchev+ 2020 in preparation]
+
+
+---
+
+class: middle, center
+
+# Simulator-based inference
+
+## Analysing subhalo population
+
+
+---
+
+exclude: true
+
+# Towards targeted inference networks
+
+.center.red[Training data can now be generated by sampling from the posterior predictive distribution]
+
+
+.center.width-100[![](figures/ppd_samples.gif)]
+
+.center[Samples from posterior-predictive distribution vs. real observation]
+
+
+---
+
+# Our strategy: Targeted training
+
+.grid[
+.kol-1-3[
+.center[1) Pre-fit of image with variational inference]
+.center.width-80[![](figures/NeurIPS_Fig2a.png)]
+]
+.kol-1-3[
+.center[2) Generate targeted NN training data]
+.center.width-80[![](figures/ppd_samples-left.gif)]
+]
+.kol-1-3[
+.center[3) Train neural network to infer substructure]
+.center.width-80[![](figures/NeurIPS_Fig2b.png)]
+]
+]
+
+
+.center[
+## Questions
+
+How to generate training data for targeted training?
+
+]
+
+
+
+
+---
+
+# Our strategy: Targeted training
+
+$$
+p(z_h|x) = \int dz_s dz_l p(x| z_h, z_l, z_s) p(z_s) p(z_l) p(z_h)
+$$
+.center[model parameters: $z_l$ (lens, 10-dim), $z_s$ (source, 10000-dim), $z_h$ (subhalos, 3-10000 dim)]
+
+## Strategy
+
+1. Use Variational inference to obtain approximate posteriors for lens and source parameters (neglect small subhalo effects).
+  $$
+  p(z_l, z_s|x) \approx \int dz_s\, dz_l\, p(x|z_l, z_s) p(z_s) p(z_l)
+  $$
+  Use this to constrain the prior, $p(z_l)p(z_s) \to p_c(z_l)p_c(z_s)$ to regions that roughly match the image.
+
+2. Use constrained posteriors to generate training data for a targeted inference network.
+  $$
+  x, z_h \sim p(x|z_l, z_s, z_h) p_c(z_l) p_c(z_s) p(z_h)
+  $$
+  Marginalizatoin is done by simply ignoring eveything that is not of interest.
+
+
+
+---
+
+exclude: true
+
+# Parameter regression with ConvNets
+
+## A strong lensing image anlaysis example
+
+.center[
+.width-40[![](figures/Hezaveh2017_Fig2.png)]
+.width-40[![](figures/Hezaveh2017_Fig1a.png)]
+]
+
+.center[Convolutional neural networks can be trained to super-quickly determine, e.g., the Einstein radius given a strongly lensed galaxy image.]
+
+
+.footnote[Hezaveh+ 2017, Nature]
+
+
+
+---
+
+exclude: true
+
+# Neural networks are fitting functions
+
+## Neural network
+
+A neural network is a complex (often piece-wise linear) fitting function
+$$
+x = f\_\phi(z)
+$$
+which maps $n$-dim inputs $ z \in \mathbb{R}^{n}$ on $m$-dim outputs $ x \in \mathbb{R}^{m} $.
+
+The fitting function has **lots** of free parameters, $\phi \in \mathbb{R}^N$.
+
+## Training of neural network
+
+Given $N$ training examples $x\_i, z\_i$, with $i = 1, ..., N$,
+the goal is to find network parameters $\phi$ such that
+
+$$
+x\_i \approx f\_\phi(z\_i) \quad \text{for all} \quad i = 1, ..., N
+$$
+
+---
+
+# Neural networks
+
+.center[
+Neural networks are flexible fitting functions, $x = f\_\phi(z)$,
+which maps $n$-dim inputs $ z \in \mathbb{R}^{n}$ on $m$-dim outputs $ x \in \mathbb{R}^{m} $.
+]
+
+.center.width-65[![](figures/neural_net_simple.png)]
+
+.footnote[Image credit: https://medium.com/fintechexplained/neural-networks-a-solid-practical-guide-9f343594b02a]
+
+---
+
+# Training via stochastic gradient descent
+
+.grid[
+.kol-1-2[
+.center[
+**Loss function **
+
+$$
+\ell = \sum\_{i=1}^N (f\_\phi(z\_i) - x\_i)^2
+$$
+
+(here mean square error)
+]
+]
+.kol-1-2[
+.center[
+**Update rule**
+$$
+\phi \to \phi - \epsilon \nabla\_\phi \ell
+$$
+]
+]
+]
+
+.center.width-70[![](figures/descent.png)]
+
+.footnote[Image credit: https://suniljangirblog.wordpress.com/2018/12/13/variants-of-gradient-descent/]
+
+---
+
+exclude: true
+
+class: middle, center
+
+.large.center[How can we bring this successfully to the analysis of small-scale DM structure?]
+
+---
+
+exclude: true
+
+# The traditional analysis
+
+.center.width-80[![](figures/traditional_lens.svg)]
+
+## Challenges
+
+- Hyper-parameter optimization requires performing above analysis on a grid, to
+optimize Bayesian evidence
+- No source uncertainties can be reconstructed
+- Very hard to incorporate additional components in the lens model (multiple subhalos), since posteriors become highly multi-modal
+
+
+.footnote[E.g. Vegetti+ 2009, 2014]
+  
+
+
+---
+
+exclude: true
+
+# Propositions
+
+.large.center[Neural networks are awesome tools to answers complex questions roughly right.]
+<br>
+
+--
+exclude: true
+
+count: false
+
+.large.center[Analysing subtle variations in hugely varying images is difficult.]
+<br>
+
+--
+exclude: true
+count: false
+
+.large.center[It seems challenging to train and trust a single massive catch-all network to solve high-precision problems.]
+
+---
+
+exclude: true
+
+class: center
+
+# Propositions
+
+.large.center[Neural networks are awesome tools to answers complex questions roughly right.]
+.grid[
+.kol-1-6[
+.center[Cat]
+.width-100[![](figures/cat.jpeg)]
+]
+.kol-1-6[
+.center[Donkey]
+.width-70[![](figures/donkey.jpeg)]
+]
+.kol-1-6[
+.center[Cat]
+.width-100[![](figures/cat2.jpeg)]
+]
+.kol-1-6[
+.center[Cat]
+.width-100[![](figures/cat3.jpeg)]
+]
+.kol-1-6[
+.center[Cat]
+.width-100[![](figures/donkey2.jpeg)]
+]
+.kol-1-6[
+.center[Donkey]
+.width-80[![](figures/donkey3.jpeg)]
+]
+]
+
+---
+
+exclude: true
+
+class: center
+
+# Propositions
+
+.large.center[Analysing subtle variations in hugely varying images is difficult.]
+
+.smaller.center[Example: What is the length of the ears relative to the size of the eyes?]
+
+.grid[
+.kol-1-6[
+.width-100[![](figures/cat.jpeg)]
+]
+.kol-1-6[
+.width-70[![](figures/donkey.jpeg)]
+]
+.kol-1-6[
+.width-100[![](figures/cat2.jpeg)]
+]
+.kol-1-6[
+.width-100[![](figures/cat3.jpeg)]
+]
+.kol-1-6[
+.width-100[![](figures/donkey2.jpeg)]
+]
+.kol-1-6[
+.width-80[![](figures/donkey3.jpeg)]
+]
+]
+
+---
+
+exclude: true
+
+class: center
+
+# Propositions
+
+<br>
+<br>
+<br>
+<br>
+
+.large.center[It seems challenging to train and trust a single massive catch-all network to solve high-precision problems.]
+
+---
+
+exclude: true
+
+# Our strategy
+
+## Step 1: Generate image-specific training data with variational methods
+
+- Perform high-dimensional fits
+- Component separation
+- Hyper-parameter optimization
+- Can be used to generate training data
+
+## Step 2: Train inference network to anlayse dark matter structures
+- Posterior estimation with targeted neural ratio estimation
+
+
+
+
+---
+
+# Marginal posterior estimation with inference networks
+
+.red.center[Our goal marginal posteriors about properties of substructure in the images, like:]
+
+.center[.width-30[![](figures/NeurIPS_Fig2b.png)]]
+
+.smaller.center[How to train inference network for $p(z|\vec x)$?]
+
+.footnote[Image credit: Preliminary, Coogan+ 2020 in preparation]
+
+---
+
+# Neural likelihood-free inference
+
+<br>
+
+.center.red[Our goal is to train an augmented CNN to estimate marginal posteriors for parameters of interest.]
+
+.bold[Starting point]: for any pair of observation $x$ and model parameter $\theta$, the goal is to estimate the probability that this pair belongs one of the following classes:
+.grid[
+.kol-1-2[
+$H_0$: Data $\vec x$ corresponds to model parameters $\vec z$
+
+$H_1$: Data $\vec x$ and model $\vec z$ are unrelated
+]
+.kol-1-2[
+$(\vec x, \vec z) \sim P(\vec x, \vec z) = P(\vec x|\vec z)P(\vec z)$
+
+$(\vec x, \vec z) \sim P(\vec x)P(\vec z)$
+]
+]
+
+
+.footnote[See e.g. Louppe+Hermanns 2019 and references therein]
+
+---
+
+# Joint vs marginal samples
+
+
+1) Examples for $H_0$, jointly sampled from $\vec x, z \sim P(\vec x|z) P(z)$
+
+
+.grid[
+.kol-1-6[
+.center[Cat]
+.width-100[![](figures/cat.jpeg)]
+]
+.kol-1-6[
+.center[Donkey]
+.width-70[![](figures/donkey.jpeg)]
+]
+.kol-1-6[
+.center[Cat]
+.width-100[![](figures/cat2.jpeg)]
+]
+.kol-1-6[
+.center[Cat]
+.width-100[![](figures/cat3.jpeg)]
+]
+.kol-1-6[
+.center[Donkey]
+.width-100[![](figures/donkey2.jpeg)]
+]
+.kol-1-6[
+.center[Donkey]
+.width-80[![](figures/donkey3.jpeg)]
+]
+]
+
+2) Examples for $H_1$, marginally sampled from $\vec x, z \sim P(\vec x) P(z)$
+
+.grid[
+.kol-1-6[
+.center[Donkey]
+.width-100[![](figures/donkey3.jpeg)]
+]
+.kol-1-6[
+.center[Cat]
+.width-100[![](figures/cat3.jpeg)]
+]
+.kol-1-6[
+.center[Cat]
+.width-100[![](figures/donkey2.jpeg)]
+]
+.kol-1-6[
+.center[Cat]
+.width-70[![](figures/donkey.jpeg)]
+]
+.kol-1-6[
+.center[Donkey]
+.width-100[![](figures/cat2.jpeg)]
+]
+.kol-1-6[
+.center[Donkey]
+.width-80[![](figures/cat.jpeg)]
+]
+]
+
+.center[ Data: $\vec x = \text{Image}$; Label: $z \in  \{\text{Cat}, \text{Donkey}\}$]
+
+.footnote[See Louppe+Hermanns 2019]
+
+---
+
+# Loss function
+
+.bold[Strategy:] We train a neural network $d_\phi(\vec x, z) \in [0, 1]$ as binary classifier to estimate the probability of hypothesis $H_0$ or $H_1$.  The network output can be interpreted, for a given input pair $\vec x$ and $z$, as probability that $H_0$ is true.
+- H0 is true: $d_\phi(\vec x, z) \simeq 1$
+- H1 is true: $d_\phi(\vec x, z) \simeq 0$
+
+
+The corresponding loss function is (so-called "binary cross-entroy")
+
+$$
+L\left[d(\vec x, z)\right] = -\int dx dz  \left[ p(\vec x, z) \ln\left(d(\vec x, z)\right) + p(\vec x)p(z) \ln\left(1-d(\vec x, z)\right) \right]
+$$
+
+--
+count: false
+
+Minimizing that function (see next slide) w.r.t. the network parameters $\phi$ yields
+$$
+d(\vec x, z) \approx \frac{p(\vec x, z)}{p(\vec x, z) + p(\vec x)p(z)}
+$$
+
+.footnote[See Louppe+Hermanns 2019]
+
+---
+
+exclude: true
+
+# Properties of optimized network
+
+## Some analytical estimates
+
+$$
+\frac{\partial}{\partial\phi}L \left[d_\phi(\vec x, z)\right] = \int dx dz  \left[ p(\vec x, z) \ln\left(d(\vec x, z)\right) + p(\vec x)p(z) \ln\left(1-d(\vec x, z) \right) \right]
+$$
+$$
+= \int dx dz  \left[ \frac{p(\vec x, z)}{d(\vec x, z)} + \frac{p(\vec x)p(z)}{1-d(\vec x, z) } \right] \frac{\partial d(\vec x, z)}{\partial \phi}
+$$
+
+Setting the part in square brackets to zero yields that the network is optimized once
+$$
+d(\vec x, z) \approx \frac{p(\vec x, z)}{p(\vec x, z) + p(\vec x)p(z)}
+$$
+
+---
+
+
+# Likelihood-to-evidence ratio
+
+.red.center[Training binary classification networks yield true Bayesian posterior estimates!]
+
+With a bit of math one can show that
+$$
+r(\vec x, z) \equiv \frac{1}{d(\vec x, z)}-1 \simeq
+\frac{p(\vec x|z)}{p(\vec x)} 
+= \frac{p(z|\vec x)}{p(z)} 
+$$
+
+Once we have trained the network $d_\phi(\vec x, z)$, we can **estimate the posterior**
+$$
+p(z|\vec x) \simeq  r(\vec x, z) p(z)
+$$
+
+
+---
+
+exclude: true
+
+# Approach: Likelihood-to-evidence ratio
+
+Assume that the goal is to distriminate parameters $z$ matching an observation $x$ from parameters that do not match an observation. We want to distriminate
+- $H_0$: $x, z \sim  p(x, z)$
+- $H_1$: $x, z \sim  p(x)p(z)$
+
+We train a binary classifier to discriminate between $(x, z)$ pairs drawn from the joint distribution $p(x, z)$ and the marginal distributions $p(x)p(z)$.  This loss function is given by
+$$\ell = \int dx dz \left(
+p(x, z)\ln d(x, z)
++p(x)p(z)\ln [1-d(x, z)]
+\right)$$
+
+One can then show that the trained neural network $d(x, z) \in [0, 1]$ satisfies
+
+$$r(x,z)\equiv\frac{d(x, z)}{1-d(x, z)} = \frac{p(x|z)}{p(x)}$$
+
+which is the likelihood-to-evidence ratio.  Training only requires simulation/samples, and side-steps any likelihood marginalization.
+
+.footnote[e.g. Hermans, Louppe, 2019]
+
+---
+
+exclude: true
+
+# The inference network
+
+.center.red[We use a very simple network structure (low capacity, fast to train).]
+
+## Three conv layers
+.center[$\vec x = \text{conv2d}(\vec x)$]
+.center[$\vec x = \text{conv2d}(\vec x)$]
+
+.center[$\vec f = \text{conv2d}(\vec x)$]
+
+## Concatenating features from CNN, $\vec f$ with model parameters $z$
+.center[$\vec f' = \text{concat}(\vec f, z)$]
+
+## Three dense layers
+.center[$r(x, z) = \text{MLP}(\vec f')$]
+
+---
+
+exclude: true
+
+class: center, middle
+
+We used variational inference fit from above to generate training data for a neural network that can recognize individual subhalos.
+
+---
+
+# Strong lensing image analysis
+
+.center.width-80[![](figures/NeurIPS_Fig2.png)]
+
+The shown posteriors are **effectively marginalized over thousands of source and
+lens parameters**.  Those marginal posteriors can be evaluated in seconds once
+the network is trained (and training takes maybe 20 min).
+
+.footnote[Preliminary, Coogan+ 2020 in preparation]
+
+---
+
+class: center, middle, black-slide
+
+background-image: url(figures/A_Horseshoe_Einstein_Ring_from_Hubble.jpeg)
+
+<br><br><br><br><br><br><br><br><br><br><br><br>
+
+.block.center.large[It start to work: Similar sensitivity to full likelihood analysis, but much much more flexible.]
+
+---
+
+exclude: true
+
+# Spinoff I: Nested posterior estimation
+
+The idea of targeted inference networks can be generalized.
+
+---
+
+exclude: true
+
+# Spinoff II: Analysis of $\gamma$-ray data
+
+---
+
+# swyft: stop wasting your precious time
+
+.center[B. Miller, A. Cole, G. Louppe, CW: https://arxiv.org/abs/2010.07032,
+https://github.com/undark-lab/swyft]
+
+.bold.center[We recently released a Python package for **neural nested posterior estimation**.]
+
+.center.width-60[![](figures/neurips_swyft_fig1.png)]
+
+- directly estimates any marginal posterior (in the above example, we never estimate the full 3-dim posterior but still get 2-dim marginal posteriors right)
+- performance doesn't depend on the number of nuiscance parameters
+- enables the re-use of past simulations
+
+---
+
+# Conclusions
+
+- The analysis of .red[gravitationally strongly lensed galaxy images] enables to study the substructure of dark matter.
+- Extracting information from these images requires .red[sub-percent accuracy] of the analysis.
+- We developed a .underline.red[two-step analysis pipeline].
+- Step 1) Source and main lens reconstruction with .red[variational inference], including uncertainties. This enables the generation of .red[targetd training data].
+- Step 2) Training of an .red[targeted inference network] to perform substructure analysis.
+- The approach enables to study the combined effect of thousands of subhalos, which is .red[intractable with traditional techniques].
+- Lots of .red[spin-off work] (dark matter searches with gamma-ray data, gravitational wave parameter inference, ...)
+
+--
+count: false
+
+.red.center[Check out swyft!]
+
+--
+count: false
+
+.large.center[Thank you!]
+
+
+
+
+<!-- *********************** End of slide content ********************** -->
+
+</textarea>
+
+    <script src="./assets/remark-latest.min.js"></script>
+    <script src="./assets/katex.min.js"></script>
+    <script src="./assets/auto-render.min.js"></script>
+    <script src=""></script>
+
+    <script type="text/javascript">
+      var options = {ratio:'14:9'};
+      var renderMath = function() {
+        renderMathInElement(document.body);
+        // or if you want to use $...$ for math,
+        renderMathInElement(document.body, {delimiters: [ // mind the order of delimiters(!?)
+            {left: "$$", right: "$$", display: true},
+            {left: "$", right: "$", display: false},
+            {left: "\\[", right: "\\]", display: true},
+            {left: "\\(", right: "\\)", display: false},
+        ]});
+      }
+      remark.macros.scale = function (percentage) {
+        var url = this;
+        return '<img src="' + url + '" style="width: ' + percentage + '" />';
+      };
+      var slideshow = remark.create(options, renderMath);
+    </script>
+
+    <script src="./assets/mermaid.min.js"></script>
+    <script>mermaid.initialize({startOnLoad:true, closeCssStyles:true});</script>
+  </body>
+</html>
